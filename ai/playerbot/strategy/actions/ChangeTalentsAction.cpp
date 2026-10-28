@@ -294,7 +294,8 @@ void ChangeTalentsAction::RespecHireGearKit(Player* bot, std::ostringstream& out
     char const* specKey = TortoiseBots::ResolveHireGearSpecKey(cls, specIndex, role);
     if (!specKey)
         return;
-    if (TortoiseBots::HireProvisionService::EquipHireGearSet(bot, ai, cls, specKey, bot->GetRace(), tier))
+    uint32_t ilvlCap = TortoiseBots::HireLifecycle::Instance().GearIlvlCap(bot->GetObjectGuid());
+    if (TortoiseBots::HireProvisionService::EquipHireGearSet(bot, ai, cls, specKey, bot->GetRace(), tier, ilvlCap))
     {
         bot->SaveToDB();
         ai->UpdateTalentSpec();

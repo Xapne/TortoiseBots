@@ -30,6 +30,7 @@ TortoiseBots provides tools to manage owned alternate characters (alts) as bots,
 | [`.bot summon`](#bot-summon) | `<Name>` | Teleports an owned bot or hire to your coordinates. |
 | [`.bot maintenance`](#bot-maintenance) | `<Name>` | Refreshes bot reagents, ammunition, and gear repairs. |
 | [`.bot autogear`](#bot-autogear) | `<Name> [quality\|ilvl]` | Automatically upgrades gear to level-appropriate items. |
+| [`.bot gear`](#bot-gear) | `<raid\|Name> <tier> [ilvl=<n>]` | Refits hired companions to a gear kit, optionally under an item-level cap. |
 | [`.bot release`](#bot-release) | None | Commands dead companion bots to release spirit. |
 | [`.bot corpse run`](#bot-corpse-run) | None | Commands spirit bots to return to their corpses. |
 | [`.bot learn`](#bot-learn) | None | Commands nearby companion bots to train new spells. |
@@ -173,6 +174,19 @@ Evaluates a bot's level and automatically equips level-appropriate equipment up 
 Requires [`AiPlayerbot.OwnedBotAutogearEnabled`](../../server/settings/party.md#aiplayerbotownedbotautogearenabled) to be enabled (1). Defaults to uncommon (green) gear unless specified (e.g. `blue` or `200`). Ranged weapons are selected to match existing ammunition in the bot's bags. Note: autogear hands out no ammo; hunter ammunition must be stocked separately.
 
 For real players, use [`.autogear`](#autogear) instead — `.bot autogear` only works on owned or hired bots.
+
+### `.bot gear`
+
+Refits your hired companions to one of the hire gear kits, so a raid you hired in Naxxramas gear can step down to a Molten Core kit for a fresh run.
+
+```text
+.bot gear <raid|CharacterName> <tier> [ilvl=<n>]
+```
+
+- **Who:** `raid` refits every hired companion of yours in your group; a name refits that one hire. Owned alts and pool bots are not touched.
+- **Kit:** The same tier words as [`.bot hire`](#bot-hire) (`t3`, `mc`, `naxx`, ...). Each hire gets the kit for the spec it plays, including enchants, and replaced pieces are destroyed, as hiring does. Standard is not a kit.
+- **Cap:** With `ilvl=<n>`, a slot whose piece is above the cap takes the same slot from the highest lower kit that fits; if none fits the slot stays empty. The reply counts those slots. A later respec refits to the same kit under the same cap.
+- **Gates:** Companions must be level 60, [`AiPlayerbot.HireGearTiersEnabled`](../../server/settings/hiring.md#aiplayerbothiregeartiersenabled) must be on, and the tier must be unlocked for you (see [Mercenary Contracts](#mercenary-contracts)). A companion in combat is left as it is and named in the reply. Kits hand out no ammo; the reply warns when a new ranged weapon has none in the bags.
 
 ### `.autogear`
 

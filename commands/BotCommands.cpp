@@ -492,6 +492,7 @@ static BotCommandEntry const botCommands[] = {
     {"maintenance", HandleMaintenance, "maintenance <online bot name>", {}, AlwaysVisible},
     {"autogear", HandleAutogear, "autogear <online bot name> [quality|ilvl]", {}, AlwaysVisible},
     {"hire", HandleHire, "hire <class> [dps/tank/healer] ... | hire raid <preset> [tier]", {}, AlwaysVisible},
+    {"gear", HandleGear, "gear <raid|online hire name> <tier> [ilvl=<n>]", {}, AlwaysVisible},
     {"pool", HandlePool, "pool <status|accounts|adopt ...>", {}, AlwaysVisible},
     {"loot", HandleLoot, "loot [on/off]", {}, AlwaysVisible},
     {"lootlog", HandleLootLog, "lootlog [cursor]", {}, AlwaysVisible},

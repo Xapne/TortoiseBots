@@ -60,6 +60,7 @@ bool HandleSummon(ChatHandler* handler, char const* args);
 bool HandleMaintenance(ChatHandler* handler, char const* args);
 bool HandleAutogear(ChatHandler* handler, char const* args);
 bool HandleHire(ChatHandler* handler, char const* args);
+bool HandleGear(ChatHandler* handler, char const* args);
 bool HandlePool(ChatHandler* handler, char const* args);
 bool HandleLoot(ChatHandler* handler, char const* args);
 bool HandleLootLog(ChatHandler* handler, char const* args);

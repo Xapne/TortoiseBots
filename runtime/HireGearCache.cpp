@@ -4,6 +4,7 @@
 // pi-lens-ignore: clang:pp_file_not_found
 #include "Database/DatabaseEnv.h"
 #include "Log.h"
+#include "ObjectMgr.h"
 
 #include <cstring>
 
@@ -78,6 +79,20 @@ bool HireGearCache::FindRow(uint8_t classId, char const* spec, uint8_t race,
         return false;
     std::lock_guard<std::mutex> lock(m_mutex);
     return LookupHireGearRow(m_rows.data(), m_rows.size(), classId, spec, race, tier, slot, out);
+}
+
+KitSlotChoice HireGearCache::ChooseSlotRow(uint8_t classId, char const* spec, uint8_t race,
+    uint8_t tier, uint8_t slot, uint32_t ilvlCap, HireGearRow const*& out) const
+{
+    out = nullptr;
+    if (!spec)
+        return KitSlotChoice::NoRow;
+    auto itemLevel = [](uint32_t itemId) {
+        ItemPrototype const* proto = sObjectMgr.GetItemPrototype(itemId);
+        return proto ? proto->ItemLevel : 0u;
+    };
+    std::lock_guard<std::mutex> lock(m_mutex);
+    return ChooseKitSlotRow(m_rows.data(), m_rows.size(), classId, spec, race, tier, slot, ilvlCap, itemLevel, out);
 }
 
 size_t HireGearCache::RowCount() const

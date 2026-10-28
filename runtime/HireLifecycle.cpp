@@ -133,17 +133,25 @@ void HireLifecycle::MarkGrouped(ObjectGuid botGuid)
         it->second.everGrouped = true;
 }
 
-void HireLifecycle::SetGearTier(ObjectGuid botGuid, uint8_t tier)
+void HireLifecycle::SetGearTier(ObjectGuid botGuid, uint8_t tier, uint32_t ilvlCap)
 {
     auto it = m_hired.find(botGuid.GetCounter());
-    if (it != m_hired.end())
-        it->second.gearTier = tier;
+    if (it == m_hired.end())
+        return;
+    it->second.gearTier = tier;
+    it->second.gearIlvlCap = ilvlCap;
 }
 
 uint8_t HireLifecycle::GearTier(ObjectGuid botGuid) const
 {
     auto it = m_hired.find(botGuid.GetCounter());
     return it == m_hired.end() ? 0 : it->second.gearTier;
+}
+
+uint32_t HireLifecycle::GearIlvlCap(ObjectGuid botGuid) const
+{
+    auto it = m_hired.find(botGuid.GetCounter());
+    return it == m_hired.end() ? 0 : it->second.gearIlvlCap;
 }
 
 bool HireLifecycle::MasterOnline(HiredRecord const& record) const

@@ -1,6 +1,8 @@
 #pragma once
 
-enum class PlayerTalentSpec : uint8
+#include <cstdint>
+
+enum class PlayerTalentSpec : std::uint8_t
 {
     TALENT_SPEC_INVALID = 0,
     TALENT_SPEC_WARRIOR_ARMS,

@@ -10,6 +10,7 @@
 #include <mutex>
 #include <vector>
 
+#include "runtime/policy/hire/HireGearKitPolicy.h"
 #include "runtime/policy/hire/HireGearPolicy.h"
 
 namespace TortoiseBots
@@ -32,6 +33,12 @@ public:
     // Race-override lookup (see HireGearPolicy.h). False = no row.
     bool FindRow(uint8_t classId, char const* spec, uint8_t race,
         uint8_t tier, uint8_t slot, HireGearRow const*& out) const;
+
+    // The slot's row for a kit under an item-level cap (0 = no cap): the
+    // tier's own piece, else the highest lower tier's piece that fits
+    // (HireGearKitPolicy.h). Item levels come from the item templates.
+    KitSlotChoice ChooseSlotRow(uint8_t classId, char const* spec, uint8_t race,
+        uint8_t tier, uint8_t slot, uint32_t ilvlCap, HireGearRow const*& out) const;
 
     size_t RowCount() const;
 

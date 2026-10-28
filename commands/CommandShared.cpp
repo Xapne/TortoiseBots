@@ -10,7 +10,9 @@
 // pi-lens-ignore: clang:pp_file_not_found
 #include "ObjectMgr.h"
 
+#include <sstream>
 #include <string>
+#include <vector>
 
 // pi-lens-ignore: clang:pp_file_not_found
 #include "playerbot/PlayerbotAIConfig.h"
@@ -25,6 +27,15 @@ std::string Trim(std::string value)
         return {};
     size_t last = value.find_last_not_of(" \t");
     return value.substr(first, last - first + 1);
+}
+
+std::vector<std::string> SplitWords(std::string const& text)
+{
+    std::vector<std::string> words;
+    std::istringstream stream(text);
+    for (std::string word; stream >> word;)
+        words.push_back(word);
+    return words;
 }
 
 Player* Requester(ChatHandler* handler)

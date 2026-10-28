@@ -14,6 +14,7 @@
 #include "../runtime/HireSpecPolicy.h"
 #include "../runtime/HireLevelPolicy.h"
 #include "../runtime/HireTierRequestPolicy.h"
+#include "../runtime/policy/hire/HireGearKitPolicy.h"
 #include "BotCommandContext.h"
 #include "../behavior/PlayerConvenience.h"
 // pi-lens-ignore: clang:pp_file_not_found
@@ -195,14 +196,8 @@ bool HandleHire(ChatHandler* handler, char const* args)
             handler->PSendSysMessage("Hired companions are PvE-only: they leave you when you enter a battleground.");
         return true;
     }
-    // Split on whitespace; class/race/gender/role/spec/tier tokens in any order.
-    std::vector<std::string> tokens;
-    {
-        std::istringstream stream(input);
-        std::string token;
-        while (stream >> token)
-            tokens.push_back(token);
-    }
+    // Class/race/gender/role/spec/tier tokens in any order.
+    std::vector<std::string> tokens = SplitWords(input);
     {
         std::string first = tokens.front();
         for (char& c : first)
@@ -451,6 +446,141 @@ bool HandleHire(ChatHandler* handler, char const* args)
         sel.specIndex = 3;
     HireOutcome outcome = HireProvisionService::Instance().Hire(requester, sel, false);
     handler->PSendSysMessage("%s", outcome.message.c_str());
+    return true;
+}
+
+// `.bot gear` words after the target: a kit tier and an optional `ilvl=<n>`
+// cap, in any letter case.
+static bool ParseGearKitWords(std::vector<std::string> const& words, uint8_t& tier, uint32_t& ilvlCap)
+{
+    if (words.empty() || words.size() > 2)
+        return false;
+    if (!ParseHireTierWord(HireRaidLower(words.front()), tier))
+        return false;
+    return words.size() == 1 || ParseKitIlvlWord(HireRaidLower(words.back()).c_str(), ilvlCap);
+}
+
+// `.bot gear <raid|hire name> <tier> [ilvl=<n>]`: refit hired companions to a kit.
+bool HandleGear(ChatHandler* handler, char const* args)
+{
+    Player* requester = Requester(handler);
+    if (!requester)
+    {
+        handler->PSendSysMessage("You must be in-game to refit a companion.");
+        return true;
+    }
+    std::vector<std::string> tokens = SplitWords(args ? args : "");
+    uint8_t tier = kHireGearTierBase;
+    uint32_t ilvlCap = 0;
+    if (tokens.empty() || !ParseGearKitWords({ tokens.begin() + 1, tokens.end() }, tier, ilvlCap))
+    {
+        handler->PSendSysMessage("Usage: .bot gear <raid|online hire name> <tier> [ilvl=<n>], for example .bot gear raid naxx ilvl=76");
+        return true;
+    }
+    if (tier == kHireGearTierBase)
+    {
+        handler->PSendSysMessage("Standard is not a kit; the kits run from pre-raid (t1) to Karazhan (t7).");
+        return true;
+    }
+    if (!sPlayerbotAIConfig.hireGearTiersEnabled)
+    {
+        handler->PSendSysMessage("Equipment tiers are disabled (AiPlayerbot.HireGearTiersEnabled = 0).");
+        return true;
+    }
+    uint8_t highest = HireProvisionService::HighestUnlockedHireTierFor(requester);
+    if (tier > highest)
+    {
+        handler->PSendSysMessage("That equipment is not unlocked yet. Your highest available tier is %s (tier %u).",
+            HireTierKitName(highest).c_str(), highest);
+        return true;
+    }
+
+    std::vector<Player*> hires;
+    if (HireRaidLower(tokens.front()) == "raid")
+    {
+        Group* group = requester->GetGroup();
+        if (!group)
+        {
+            handler->PSendSysMessage("You are not in a group.");
+            return true;
+        }
+        for (Group::MemberSlot const& slot : group->GetMemberSlots())
+            if (HireLifecycle::Instance().GetMaster(slot.guid) == requester->GetObjectGuid())
+                if (Player* hire = ObjectAccessor::FindPlayer(slot.guid))
+                    hires.push_back(hire);
+        if (hires.empty())
+        {
+            handler->PSendSysMessage("None of your hired companions are in your group.");
+            return true;
+        }
+    }
+    else
+    {
+        Player* bot = nullptr;
+        BotRecord* record = nullptr;
+        std::string name;
+        if (!ResolveOwnedBot(handler, tokens.front().c_str(), bot, record, name))
+        {
+            handler->PSendSysMessage("No online companion of yours is named '%s'.", tokens.front().c_str());
+            return true;
+        }
+        if (!HireLifecycle::Instance().IsHired(bot->GetObjectGuid()))
+        {
+            handler->PSendSysMessage("'%s' is not a hired companion; kits are for hires.", name.c_str());
+            return true;
+        }
+        hires.push_back(bot);
+    }
+
+    uint32_t refitted = 0;
+    uint32_t pulledDown = 0;
+    std::string inCombat;
+    std::string skipped;
+    std::string noAmmo;
+    auto listName = [](std::string& list, char const* name) { list += list.empty() ? "" : ", "; list += name; };
+    for (Player* hire : hires)
+    {
+        // The core refuses armour swaps in combat; a half-swapped hire must
+        // not be reported as refitted.
+        if (hire->IsInCombat())
+        {
+            listName(inCombat, hire->GetName());
+            continue;
+        }
+        PlayerbotAI* ai = PlayerbotAIStorage::Instance().GetAI(hire);
+        bool tank = ai && (ai->GetForcedRole() & ai::BOT_ROLE_TANK);
+        char const* specKey = ai ? HireGearKeyForTalentSpec(ai->GetTalentSpec(), tank) : nullptr;
+        bool refit = specKey && HireGearTierEligible(hire->GetLevel(), sPlayerbotAIConfig.hireGearTiersEnabled, tier) &&
+            HireProvisionService::EquipHireGearSet(hire, ai, hire->GetClass(), specKey, hire->GetRace(), tier, ilvlCap, &pulledDown);
+        if (!refit)
+        {
+            listName(skipped, hire->GetName());
+            continue;
+        }
+        HireLifecycle::Instance().SetGearTier(hire->GetObjectGuid(), tier, ilvlCap);
+        ++refitted;
+        // Kits hand out no ammo: a hire whose new ranged weapon has none in
+        // the bags cannot auto shot, as the autogear reply warns.
+        Item const* ranged = hire->GetItemByPos(INVENTORY_SLOT_BAG_0, EQUIPMENT_SLOT_RANGED);
+        ItemPrototype const* rangedProto = ranged ? ranged->GetProto() : nullptr;
+        if (rangedProto && rangedProto->Class == ITEM_CLASS_WEAPON &&
+            !PlayerbotFactory(hire, hire->GetLevel()).HasAmmoInBagsFor(rangedProto->SubClass))
+            listName(noAmmo, hire->GetName());
+    }
+
+    std::string kit = HireTierKitName(tier);
+    if (hires.size() > 1)
+        handler->PSendSysMessage("Refitted %u of %u companions to the %s.", refitted, static_cast<uint32_t>(hires.size()), kit.c_str());
+    else if (refitted)
+        handler->PSendSysMessage("Refitted %s to the %s.", hires.front()->GetName(), kit.c_str());
+    if (ilvlCap && refitted)
+        handler->PSendSysMessage("%u slots took a lower kit's piece or stayed empty for the item level %u cap.", pulledDown, ilvlCap);
+    if (!inCombat.empty())
+        handler->PSendSysMessage("In combat, not refitted: %s.", inCombat.c_str());
+    if (!skipped.empty())
+        handler->PSendSysMessage("Not refitted (below level 60 or no %s for their spec): %s.", kit.c_str(), skipped.c_str());
+    if (!noAmmo.empty())
+        handler->PSendSysMessage("Warning: no ammo in the bags for the new ranged weapon, auto shot will not fire until they get some: %s.", noAmmo.c_str());
     return true;
 }
 

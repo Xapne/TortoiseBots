@@ -1556,7 +1556,8 @@ void HireProvisionService::ProvisionHireGear(Player* bot, PendingProvision const
     }
 }
 
-bool HireProvisionService::EquipHireGearSet(Player* bot, PlayerbotAI* ai, uint8_t classId, char const* specKey, uint8_t race, uint8_t tier)
+bool HireProvisionService::EquipHireGearSet(Player* bot, PlayerbotAI* ai, uint8_t classId, char const* specKey, uint8_t race, uint8_t tier,
+    uint32_t ilvlCap, uint32_t* pulledDown)
 {
     if (!bot || !ai || !specKey)
         return false;
@@ -1565,13 +1566,17 @@ bool HireProvisionService::EquipHireGearSet(Player* bot, PlayerbotAI* ai, uint8_
     for (uint8 slot = 0; slot < EQUIPMENT_SLOT_END; ++slot)
     {
         HireGearRow const* row = nullptr;
-        if (!HireGearCache::Instance().FindRow(classId, specKey, race, tier, slot, row) || !row)
+        KitSlotChoice choice = HireGearCache::Instance().ChooseSlotRow(classId, specKey, race, tier, slot, ilvlCap, row);
+        if (choice == KitSlotChoice::NoRow)
             continue;
         Item* oldItem = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, slot);
-        if (row->itemId == 0)
+        if (choice != KitSlotChoice::Equip)
         {
+            // The kit wants the slot empty, or no kit under the cap fills it.
             if (oldItem)
                 bot->DestroyItem(oldItem->GetBagSlot(), oldItem->GetSlot(), true);
+            if (choice == KitSlotChoice::Nothing && pulledDown)
+                ++*pulledDown;
             continue;
         }
         // A blocked row is skipped entirely: never equipped, never enchanted.
@@ -1596,6 +1601,8 @@ bool HireProvisionService::EquipHireGearSet(Player* bot, PlayerbotAI* ai, uint8_
             if (!bot->EquipNewItem(eDest, row->itemId, true))
                 continue;
         }
+        if (row->tier != tier && pulledDown)
+            ++*pulledDown;
         if (row->enchantSpell)
         {
             if (Item* item = bot->GetItemByPos(INVENTORY_SLOT_BAG_0, slot))
