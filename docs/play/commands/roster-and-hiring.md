@@ -186,7 +186,7 @@ Refits your hired companions to one of the hire gear kits, so a raid you hired i
 - **Who:** `raid` refits every hired companion of yours in your group; a name refits that one hire. Owned alts and pool bots are not touched.
 - **Kit:** The same tier words as [`.bot hire`](#bot-hire) (`t3`, `mc`, `naxx`, ...). Each hire gets the kit for the spec it plays, including enchants, and replaced pieces are destroyed, as hiring does. Standard is not a kit.
 - **Cap:** With `ilvl=<n>`, a slot whose piece is above the cap takes the same slot from the highest lower kit that fits; if none fits the slot stays empty. The reply counts those slots. A later respec refits to the same kit under the same cap.
-- **Gates:** Companions must be level 60, [`AiPlayerbot.HireGearTiersEnabled`](../../server/settings/hiring.md#aiplayerbothiregeartiersenabled) must be on, and the tier must be unlocked for you (see [Mercenary Contracts](#mercenary-contracts)). A companion in combat is left as it is and named in the reply. Kits hand out no ammo; the reply warns when a new ranged weapon has none in the bags.
+- **Gates:** Off by default: the realm enables it with [`AiPlayerbot.HireGearRefitEnabled`](../../server/settings/hiring.md#aiplayerbothiregearrefitenabled). Companions must be level 60, [`AiPlayerbot.HireGearTiersEnabled`](../../server/settings/hiring.md#aiplayerbothiregeartiersenabled) must be on, and the tier must be unlocked for you (see [Mercenary Contracts](#mercenary-contracts)). A companion in combat is left as it is and named in the reply. Kits hand out no ammo; the reply warns when a new ranged weapon has none in the bags.
 
 ### `.autogear`
 

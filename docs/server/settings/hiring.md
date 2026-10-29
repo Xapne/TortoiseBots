@@ -37,6 +37,7 @@ These settings configure mercenary companion hiring, party cost scaling, raid pr
 | [`AiPlayerbot.HireGearTiersEnabled`](#aiplayerbothiregeartiersenabled) | `1` | Enables pre-enchanted static gear tiers for hired companions. |
 | [`AiPlayerbot.HireGearStartTier`](#aiplayerbothiregearstarttier) | `0` | Baseline gear tier available to all players without completing quests. |
 | [`AiPlayerbot.HireGearUnlockAccountWide`](#aiplayerbothiregearunlockaccountwide) | `0` | Shares gear tier unlock quest completion across all account characters. |
+| [`AiPlayerbot.HireGearRefitEnabled`](#aiplayerbothiregearrefitenabled) | `0` | Lets hirers refit their hires to an unlocked kit with `.bot gear`. |
 | [`AiPlayerbot.HireGearAllQuestsAvailable`](#aiplayerbothiregearallquestsavailable) | `0` | Offers all seven gear unlock quests simultaneously rather than sequentially. |
 | [`AiPlayerbot.HireGearOptionalMaps`](#aiplayerbothiregearoptionalmaps) | `""` | Comma-separated map IDs automatically credited for gear tier unlock quests. |
 | [`AiPlayerbot.HireGearTierCostMultipliers`](#aiplayerbothiregeartiercostmultipliers) | `1,1.5,2,3,4,5,6,6` | Eight cost multipliers applied to hiring fees per gear tier. |
@@ -284,6 +285,17 @@ Master switch for static best-in-slot gear progression tiers on hired companions
 Enables pre-enchanted static equipment tiers (tiers 1 through 7) for level 60 hired companions.
 
 When set to `0`, companions receive only randomly generated level-appropriate gear without tier progression or enchants.
+
+</details>
+
+### `AiPlayerbot.HireGearRefitEnabled`
+Lets a hirer refit hired companions to an unlocked gear kit after the hire with [`.bot gear`](../../play/commands/roster-and-hiring.md#bot-gear).
+**Default:** `0` · **Values:** `0` off, `1` on · **Restart:** needed
+
+<details>
+<summary>How it works in detail</summary>
+
+Off, a companion keeps the kit it was hired in until it is dismissed; the progression is the recruiter's unlock path alone. On, `.bot gear` refits a hirer's own hires to any kit they have unlocked, optionally under an item-level cap, under the same gates as hiring (level 60, [`AiPlayerbot.HireGearTiersEnabled`](#aiplayerbothiregeartiersenabled), tier unlocked).
 
 </details>
 

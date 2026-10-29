@@ -423,8 +423,12 @@ AiPlayerbot.TravelPickBudgetUs = 4000
 # 819 (Timbermaw Hold) or all Turtle content 800,532,819,807,814; their
 # loot stays in the gear pool. HireGearTierCostMultipliers: hire fee
 # multiplier for tiers 0..7 (exactly 8 numbers, else the defaults are used).
+# HireGearRefitEnabled = 1: `.bot gear` lets a hirer refit their hires to an
+# unlocked kit after the hire, optionally under an item-level cap; off, the
+# kit a hire was hired in stays until it is dismissed.
 # The values below are the values that actually run.
 #AiPlayerbot.HireGearTiersEnabled = 1
+#AiPlayerbot.HireGearRefitEnabled = 0
 #AiPlayerbot.HireGearStartTier = 0
 #AiPlayerbot.HireGearUnlockAccountWide = 0
 #AiPlayerbot.HireGearAllQuestsAvailable = 0

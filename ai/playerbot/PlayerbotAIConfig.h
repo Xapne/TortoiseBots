@@ -436,6 +436,7 @@ public:
     uint32 hireGearStartTier = 0;
     // Unlock quests rewarded on any character of the account count.
     bool hireGearUnlockAccountWide = false;
+    bool hireGearRefitEnabled = false;
     // All seven unlock quests offered at once (no PrevQuestId chain).
     // Written into the quests at startup, live after the next restart.
     bool hireGearAllQuestsAvailable = false;

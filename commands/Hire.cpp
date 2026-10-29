@@ -482,9 +482,9 @@ bool HandleGear(ChatHandler* handler, char const* args)
         handler->PSendSysMessage("Standard is not a kit; the kits run from pre-raid (t1) to Karazhan (t7).");
         return true;
     }
-    if (!sPlayerbotAIConfig.hireGearTiersEnabled)
+    if (!sPlayerbotAIConfig.hireGearRefitEnabled || !sPlayerbotAIConfig.hireGearTiersEnabled)
     {
-        handler->PSendSysMessage("Equipment tiers are disabled (AiPlayerbot.HireGearTiersEnabled = 0).");
+        handler->PSendSysMessage("Refitting hires is off on this realm (AiPlayerbot.HireGearRefitEnabled and HireGearTiersEnabled must be 1).");
         return true;
     }
     uint8_t highest = HireProvisionService::HighestUnlockedHireTierFor(requester);

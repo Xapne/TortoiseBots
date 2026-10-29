@@ -632,6 +632,7 @@ bool PlayerbotAIConfig::Initialize()
     if (hireGearStartTier > 7)
         hireGearStartTier = 7;
     hireGearUnlockAccountWide = config.GetBoolDefault("AiPlayerbot.HireGearUnlockAccountWide", false);
+    hireGearRefitEnabled = config.GetBoolDefault("AiPlayerbot.HireGearRefitEnabled", false);
     hireGearAllQuestsAvailable = config.GetBoolDefault("AiPlayerbot.HireGearAllQuestsAvailable", false);
     {
         std::list<uint32> optionalMaps;
